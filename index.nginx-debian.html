@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Таймер для чая</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(to bottom, #f8f5f1, #e7e4e0);
+      color: #2c2c2c;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .container {
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 16px;
+      padding: 20px;
+      max-width: 400px;
+      text-align: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    h1 {
+      margin: 0;
+      font-size: 24px;
+    }
+    p {
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 20px;
+    }
+    .timer {
+      font-size: 48px;
+      font-weight: bold;
+      margin: 20px 0;
+      font-family: monospace;
+    }
+    .buttons button {
+      margin: 5px;
+      padding: 10px 16px;
+      border-radius: 12px;
+      border: 1px solid #ccc;
+      background: #f9f9f9;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .buttons button:hover {
+      background: #f1f1f1;
+    }
+    .info {
+      display: flex;
+      justify-content: space-around;
+      margin-top: 15px;
+      font-size: 12px;
+      color: #444;
+    }
+    .info div {
+      background: #fafafa;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 6px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Таймер для чая</h1>
+    <p>Заваривание в стиле гунфу — начинаем с 30 секунд, потом +15 секунд</p>
+
+    <div class="timer" id="timer">00:30</div>
+
+    <div class="buttons">
+      <button id="start">Старт</button>
+      <button id="pause">Пауза</button>
+      <button id="next">Следующее заваривание +15с</button>
+      <button id="reset">Сброс до 30с</button>
+    </div>
+
+    <div id="status" style="margin-top:10px; font-size:14px; color:green;"></div>
+
+    <div class="info">
+      <div>
+        <div>Заваривание</div>
+        <div id="steepNum">1</div>
+      </div>
+      <div>
+        <div>Цель</div>
+        <div id="targetTime">00:30</div>
+      </div>
+      <div>
+        <div>Прибавка</div>
+        <div>+15с</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const BASE_SECONDS = 30;
+    const INCREMENT_SECONDS = 15;
+
+    let steepIndex = 1;
+    let targetSeconds = BASE_SECONDS;
+    let remaining = BASE_SECONDS;
+    let running = false;
+    let interval = null;
+
+    const timerEl = document.getElementById("timer");
+    const statusEl = document.getElementById("status");
+    const steepNumEl = document.getElementById("steepNum");
+    const targetTimeEl = document.getElementById("targetTime");
+
+    function formatTime(seconds) {
+      const m = Math.floor(seconds / 60);
+      const s = seconds % 60;
+      return `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+    }
+
+    function updateDisplay() {
+      timerEl.textContent = formatTime(remaining);
+      steepNumEl.textContent = steepIndex;
+      targetTimeEl.textContent = formatTime(targetSeconds);
+    }
+
+    function beep() {
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const o = ctx.createOscillator();
+        const g = ctx.createGain();
+        o.connect(g);
+        g.connect(ctx.destination);
+        o.type = "sine";
+        o.frequency.value = 880;
+        g.gain.setValueAtTime(0.0001, ctx.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.2, ctx.currentTime + 0.02);
+        o.start();
+        o.stop(ctx.currentTime + 0.25);
+      } catch(e) {}
+    }
+
+    function startTimer() {
+      if (running || remaining <= 0) return;
+      running = true;
+      statusEl.textContent = "";
+      interval = setInterval(() => {
+        remaining--;
+        updateDisplay();
+        if (remaining <= 0) {
+          clearInterval(interval);
+          running = false;
+          statusEl.textContent = "Заваривание завершено! ☕️";
+          beep();
+        }
+      }, 1000);
+    }
+
+    function pauseTimer() {
+      if (!running) return;
+      clearInterval(interval);
+      running = false;
+    }
+
+    function resetTimer() {
+      pauseTimer();
+      steepIndex = 1;
+      targetSeconds = BASE_SECONDS;
+      remaining = BASE_SECONDS;
+      statusEl.textContent = "";
+      updateDisplay();
+    }
+
+    function nextSteep() {
+      pauseTimer();
+      steepIndex++;
+      targetSeconds = BASE_SECONDS + (steepIndex - 1) * INCREMENT_SECONDS;
+      remaining = targetSeconds;
+      statusEl.textContent = "";
+      updateDisplay();
+    }
+
+    document.getElementById("start").onclick = startTimer;
+    document.getElementById("pause").onclick = pauseTimer;
+    document.getElementById("reset").onclick = resetTimer;
+    document.getElementById("next").onclick = nextSteep;
+
+    updateDisplay();
+  </script>
+</body>
+</html>
