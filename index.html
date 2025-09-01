@@ -48,6 +48,10 @@
       cursor: pointer;
       transition: background 0.2s;
     }
+	#reset {
+      border: 1px solid #fff;
+	}
+
     .buttons button:hover {
       background: #f1f1f1;
     }
@@ -69,7 +73,6 @@
 <body>
   <div class="container">
     <h1>Таймер для чая</h1>
-    <p>Заваривание в стиле гунфу — начинаем с 30 секунд, потом +15 секунд</p>
 
     <div class="timer" id="timer">00:30</div>
 
@@ -86,14 +89,6 @@
       <div>
         <div>Заваривание</div>
         <div id="steepNum">1</div>
-      </div>
-      <div>
-        <div>Цель</div>
-        <div id="targetTime">00:30</div>
-      </div>
-      <div>
-        <div>Прибавка</div>
-        <div>+15с</div>
       </div>
     </div>
   </div>
